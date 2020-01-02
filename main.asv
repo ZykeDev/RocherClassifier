@@ -1,0 +1,32 @@
+% Main script
+clear all;
+clc;
+
+% Comput the descriptors for all images (only once)
+%compute_image_dexs();
+
+% Load the results
+load("data.mat");
+
+
+cvp = cvpartition(labels, 'Holdout', 0.2);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
