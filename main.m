@@ -12,17 +12,12 @@ load("data.mat");
 % Create the Cross-validation data partiton (80/20)
 cvp = cvpartition(labels, 'Holdout', 0.2);
 
+% Test this classifier
 out = test_classifier([lbp], labels, cvp);
 
-disp(out.test_perf);
+% Display the results
+disp(out.test_perf.accuracy);
 disp(out.test_perf.cm);
-
-
-
-
-
-
-
 
 
 

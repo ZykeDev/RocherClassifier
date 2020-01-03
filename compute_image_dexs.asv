@@ -17,13 +17,8 @@ fclose(f);
 nimages = numel(images);
 
 
-im = im2double(imread(['Dataset/' images{32}]));
-im = medfilt3(im);
-
-%bw = imbinarize(im, 'adaptive', 'ForegroundPolarity', 'bright', 'Sensitivity', 0.5);
+im = im2double(imread(['Dataset/' images{1}]));
 compute_labels(im);
-%subplot(211), imshow(im);
-%subplot(212), imshow(bw);
 
 
 
