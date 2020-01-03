@@ -1,2 +1,2 @@
-# RocheClassifier
- A chocolate box classifier with fault localization for Ferrero Roche
+# Roche Classifier
+ A chocolate box classifier with fault localization for Ferrero Rocher boxes.
