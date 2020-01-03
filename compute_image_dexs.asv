@@ -16,12 +16,41 @@ fclose(f);
 % Get the number of images
 nimages = numel(images);
 
+im = im2double(imread(['Dataset/' images{32}]));
+gray = rgb2gray(im);
+im = medfilt3(im);
 
-im = im2double(imread(['Dataset/' images{1}]));
-compute_labels(im);
+%se = strel('disk', 100);
+%bg = imopen(gray, se);
+%imshow(bg);
+
+[r, c] = size(gray);
+x = gray(:, 1);     % First col
+for i = 1 : r
+    x(i) = mean(gray(i,:));
+end
+k = find(x == max(x(:)));
+xm = gray(:, k);
+s = xm;             %s = smooth(xm, 9);
+si = 1 ./ s;        % Invert the vector
+M = si' .* si;
+BG = M(round((c-r+1)/2) : end, 1 : end);
+
+bw = im > BG;
+
+
+imshow(bw);
+
+
+%bw = imbinarize(im, 'adaptive', 'ForegroundPolarity', 'bright', 'Sensitivity', 0.5);
+%compute_labels(im);
 
 
 
+
+
+
+% (Not ran for now)
 % For every image, compute a set of descriptors
 disp("Computing Descriptors...");
 lbp = [];

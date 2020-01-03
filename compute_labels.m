@@ -22,7 +22,7 @@ function [] = compute_labels(im)
     % Binarize (1->0, 2->1)
     img_labels = img_labels - 1;
     
-    subplot(211), imshow(im);
+    subplot(211), imshow(gray);
     subplot(212), imagesc(img_labels), axis image;
 
 end

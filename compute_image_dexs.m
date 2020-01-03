@@ -16,17 +16,29 @@ fclose(f);
 % Get the number of images
 nimages = numel(images);
 
-
 im = im2double(imread(['Dataset/' images{32}]));
+gray = rgb2gray(im);
 im = medfilt3(im);
 
+% Correct Nonuniform Illumination
+se = strel('disk', 100); % TODO check thresh
+bg = imopen(gray, se);
+new = im - bg;
+
+subplot(211), imshow(im);
+subplot(212), imshow(new);
+
+
+
 %bw = imbinarize(im, 'adaptive', 'ForegroundPolarity', 'bright', 'Sensitivity', 0.5);
-compute_labels(im);
-%subplot(211), imshow(im);
-%subplot(212), imshow(bw);
+compute_labels(new);
 
 
 
+
+
+
+% (Not ran for now)
 % For every image, compute a set of descriptors
 disp("Computing Descriptors...");
 lbp = [];
