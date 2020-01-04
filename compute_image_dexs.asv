@@ -1,4 +1,4 @@
-function out = compute_image_dexs()
+function [] = compute_image_dexs()
 %COMPUTE_IMAGE_DEXS Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -20,31 +20,20 @@ im = im2double(imread(['Dataset/' images{32}]));
 gray = rgb2gray(im);
 im = medfilt3(im);
 
-%se = strel('disk', 100);
-%bg = imopen(gray, se);
-%imshow(bg);
+% Correct Nonuniform Illumination
+se = strel('disk', 100); % TODO eval thresh
+bg = imopen(gray, se);
+new = im - bg;
 
-[r, c] = size(gray);
-x = gray(:, 1);     % First col
-for i = 1 : r
-    x(i) = mean(gray(i,:));
-end
-k = find(x == max(x(:)));
-xm = gray(:, k);
-s = xm;             %s = smooth(xm, 9);
-si = 1 ./ s;        % Invert the vector
-M = si' .* si;
-BG = M(round((c-r+1)/2) : end, 1 : end);
-
-bw = im > BG;
-
-
-imshow(bw);
+subplot(211), imshow(im);
+subplot(212), imshow(new);
 
 
 %bw = imbinarize(im, 'adaptive', 'ForegroundPolarity', 'bright', 'Sensitivity', 0.5);
-%compute_labels(im);
+img_labels = compute_labels(new);
 
+subplot(211), imshow(gray);
+subplot(212), imagesc(img_labels), axis image;
 
 
 
@@ -63,6 +52,5 @@ end
 save("data.mat", "images", "labels", "lbp");
 disp("Descriptors Saved");
 
-out = 0;
 end
 

@@ -1,0 +1,10 @@
+function [out] = clean_labels(img_labels)
+%CLEAN_LABELS
+    se = strel('disk', 23);
+    out = imclose(img_labels, se);
+    
+    se = strel('disk', 25);
+    out = imclose(out, se);
+
+end
+
