@@ -15,9 +15,9 @@ function [] = compute_image_dexs()
     % Get the number of images
     nimages = numel(images);
 
-    im = im2double(imread(['Dataset/' images{1}]));
+    im = im2double(imread(['Dataset/' images{63}]));
     gray = rgb2gray(im);
-    im = medfilt3(im);
+    %im = medfilt3(im);
 
     % Correct Nonuniform Illumination
     se = strel('disk', 100); % TODO eval size
@@ -26,12 +26,13 @@ function [] = compute_image_dexs()
 
     img_labels = compute_labels(new);
     cleaned = clean_labels(img_labels);
-
-    subplot(211), imshow(new);
-    subplot(212), imshow(cleaned);
-
-
-
+    cleaned = padarray(cleaned, [8, 6]);
+    cleaned = cleaned(2:end, :);
+    
+    % Mask the original using the BW image
+    maskedImg = bsxfun(@times, new, cast(cleaned, 'like', new));
+  
+    imshow(maskedImg);
 
 
     % For every image, compute a set of descriptors

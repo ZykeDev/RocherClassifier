@@ -2,7 +2,7 @@ function [img_labels] = compute_labels(im)
 % COMPUTE_LABELS Segments an image using weighted LBP and AVG.
     gray = rgb2gray(im);
     
-    t_size = 15;
+    t_size = 21;
     n_clusters = 2;
     lbp_weigth = 1;
     avg_weight = 1;
