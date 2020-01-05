@@ -5,7 +5,7 @@ function [img_labels] = compute_labels(im)
     t_size = 21;
     n_clusters = 2;
     lbp_weigth = 1;
-    avg_weight = 1;
+    avg_weight = 1.1;
     
     disp("Computing local dexs...");
     lbpdex = compute_local_descriptors(gray, t_size, t_size, @compute_lbp);

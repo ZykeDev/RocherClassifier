@@ -17,11 +17,11 @@ function out = compute_local_descriptors(image, tsize, tstep, compute_funct)
     for r = half : tstep: rows-half-1
       nt_rows = nt_rows+1;
       
-      tassello = tmp(r-half+1:r+half+1, c-half+1:c+half+1,:);
+      tessel = tmp(r-half+1 : r+half+1, c-half+1 : c+half+1,:);
     
-      res = compute_funct(tassello);
+      res = compute_funct(tessel);
       
-      descriptors = [descriptors;res];
+      descriptors = [descriptors; res];
       
     end
   end
