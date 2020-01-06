@@ -15,33 +15,47 @@ function [] = compute_image_dexs()
     % Get the number of images
     nimages = numel(images);
 
-    im = im2double(imread(['Dataset/' images{1}]));
+    [im, map] = imread(['Dataset/' images{2}]);
+    im = im2double(im);
+    [r, c, ch] = size(im);
+    
+    % Preprocessing TODO
     gray = rgb2gray(im);
-    %im = medfilt3(im);
-    im = imgaussfilt(im, 1); % TODO find best preprocessing
-
+    im = imgaussfilt(im, 0.5);
+    
+    
     % Correct Nonuniform Illumination
-    se = strel('disk', 60); % TODO eval size
+    se = strel('disk', 80); % TODO eval size
     bg = imopen(gray, se);
     new = im - bg .* 2;
-
+    
     img_labels = compute_labels(new);
     masked = clean_labels(img_labels);
     masked = padarray(masked, [8, 6]); % TODO fix
     masked = masked(2:end, :);
     
     % Mask the original using the BW image
-    maskedImg = bsxfun(@times, new, cast(masked, 'like', new)); 
+    maskedImg = bsxfun(@times, new, cast(masked, 'like', new));   
+    
+    
+    equalized = histeq(maskedImg);
     
     % Compute the edge using Canny's method
-    E = edge(rgb2gray(maskedImg), "Canny", 0.3);
-    E = imdilate(E, strel("disk", 2));
-    E = imerode(E, strel("disk", 1));
-
+    minT = 0.1;
+    maxT = 0.4;
+    E = edge(rgb2gray(equalized), "Canny", [minT, maxT]);
     imshow(E);
-    % Compute the dexs for the number of Stickers
-    %imshow(E);
     
+    
+    
+    
+    
+    
+    %E = imclose(E, strel("disk", 4));
+    %E = bwmorph(E, 'skel', 4);
+    %imshow(E);
+    % Compute the dexs for the number of Stickers
+   
     %L = bwlabel(E);
     % Prune small CCs
     %for k = 1 : 2781
@@ -52,7 +66,7 @@ function [] = compute_image_dexs()
     %end
     %imshow(L);
     
-    [sn, spos] = compute_stickers(E);
+    %[sn, spos] = compute_stickers(E);
     
     %disp(sn);
     %disp(spos);

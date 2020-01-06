@@ -11,7 +11,7 @@ function [n, pos] = compute_stickers(im)
     
     maxMajorAxis = 40;
     minMajorAxis = 10;
-    maxRatio = 2; %1.85;
+    maxRatio = 1.85;
     minRatio = 0; %1.1;
   
     % Apply regionprops to detect ellipses
