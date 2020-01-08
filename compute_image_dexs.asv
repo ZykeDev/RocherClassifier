@@ -15,7 +15,7 @@ function [] = compute_image_dexs()
     %% Get the image data
     nimages = numel(images);
 
-    [im, map] = imread(['Dataset/' images{64-7}]);
+    [im, map] = imread(['Dataset/' images{3}]);
     im = im2double(im);
     [r, c, ch] = size(im);
     
@@ -43,7 +43,7 @@ function [] = compute_image_dexs()
     %% Detect box type (square or rect)
     bw = imbinarize(rgb2gray(maskedImg), 0.000001);
     bw = imerode(bw, strel('disk', 15));
-    bw = imdilate(bw, strel('square', 27)); % TODO eval constants
+    bw = imdilate(bw, strel('disk', 31)); % TODO eval constants
 
     % Compute regions data, only use the one with the largest area
     stats = regionprops(bw, "Area", "Centroid", "MajorAxisLength", "MinorAxisLength", "Orientation");
@@ -59,31 +59,34 @@ function [] = compute_image_dexs()
     end
     
     region = stats(maxindex);
+    
     centroid = region.Centroid;
     majax = region.MajorAxisLength;
     minax = region.MinorAxisLength;
     orientation = region.Orientation;
     
-    if majax < minax * 1.2 % TODO square/rect ratio?
+    
+    xMajax = centroid(1) + [-1, 1] * majax * cosd(-orientation)/2;
+    yMajax = centroid(2) + [-1, 1] * majax * sind(-orientation)/2;
+    xMinax = centroid(1) + [-1, 1] * minax * cosd(-orientation)/2;
+    yMinax = centroid(2) + [-1, 1] * minax * sind(-orientation)/2;
+    
+    
+    imshow(bw); hold on; 
+    plot(centroid(1), centroid(2), 'b*');
+    line(xMajax, yMajax, 'Linewidth',6);
+    line(xMajax, yMajax, 'Linewidth',6);
+    hold off;
+   
+    if majax < minax * 3 / 2
         boxtype = "SQUARE";
     else
         boxtype = "RECT";
     end
     disp(boxtype);
     
-    % Draw the box axes
-    xMajax = centroid(1) + [-1, 1] * majax * cosd(-orientation)/2;
-    yMajax = centroid(2) + [-1, 1] * majax * sind(-orientation)/2;
-    xMinax = centroid(1) + [-1, 1] * minax * sind(orientation)/2;
-    yMinax = centroid(2) + [-1, 1] * minax * cosd(orientation)/2;
     
-    imshow(bw); hold on; 
-    plot(centroid(1), centroid(2), 'b*');
-    line(xMajax, yMajax, 'Linewidth', 4);
-    line(xMinax, yMinax, 'Linewidth', 4);
-    hold off;
-    
-
+    return
     %% Find the circles round the rochers
     % TODO change circle range to the ratio of box-length/number of rochers
     minRadius = 60;
