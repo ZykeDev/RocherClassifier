@@ -2,7 +2,7 @@ function [] = compute_image_dexs()
 %COMPUTE_IMAGE_DEXS
     close all;
     clear all;
-    
+       
     %% Read the image names and respective labels from the 2 .list files
     f = fopen('images.list');
     z = textscan(f, '%s');
@@ -15,7 +15,7 @@ function [] = compute_image_dexs()
     fclose(f);
     nimages = numel(images);
     
-    for n = 1 : nimages
+    for n = 2 : nimages
         %% Get the image data
         im = imread(['Dataset/' images{n}]);
         im = im2double(im);
@@ -25,7 +25,6 @@ function [] = compute_image_dexs()
         %% Preprocessing TODO
         gray = rgb2gray(im);
         im = imgaussfilt(im, 0.5);
-
 
         %% Correct Nonuniform Illumination
         se = strel('disk', 80); % TODO eval se size
@@ -38,11 +37,11 @@ function [] = compute_image_dexs()
         masked = masked(2:end, :);
 
         % Mask the original using the BW image
-        maskedImg = bsxfun(@times, new, cast(masked, 'like', new));   
-        equalized = histeq(maskedImg);
+        imgmask = bsxfun(@times, new, cast(masked, 'like', new));   
+        graymask = rgb2gray(imgmask);
 
         %% Detect box type (square or rect)
-        bw = imbinarize(rgb2gray(maskedImg), 0.000001);
+        bw = imbinarize(graymask, 0.000001);
         bw = imerode(bw, strel('disk', 15));
         bw = imdilate(bw, strel('square', 27)); % TODO eval constants
 
@@ -73,11 +72,11 @@ function [] = compute_image_dexs()
         disp(n);
         disp(box.type);
 
-        % Draw the box axes
-        xMajax = centroid(1) + [-1, 1] * majax * cosd(-orientation)/2;
-        yMajax = centroid(2) + [-1, 1] * majax * sind(-orientation)/2;
-        xMinax = centroid(1) + [-1, 1] * minax * sind(orientation)/2;
-        yMinax = centroid(2) + [-1, 1] * minax * cosd(orientation)/2;
+        % Draw the main axes
+        %xMajax = centroid(1) + [-1, 1] * majax * cosd(-orientation)/2;
+        %yMajax = centroid(2) + [-1, 1] * majax * sind(-orientation)/2;
+        %xMinax = centroid(1) + [-1, 1] * minax * sind(orientation)/2;
+        %yMinax = centroid(2) + [-1, 1] * minax * cosd(orientation)/2;
 
         %imshow(bw); hold on; 
         %plot(centroid(1), centroid(2), 'b*');
@@ -86,51 +85,22 @@ function [] = compute_image_dexs()
         %hold off;
 
 
-        %% Find the circles round the rochers
-        % TODO change circle range to the ratio of box-length/number of rochers
-        minRadius = 60;
-        maxRadius = 87;
-        sensitivity = 0.97;
-        [centers, radii] = imfindcircles(maskedImg, [minRadius, maxRadius], 'ObjectPolarity', 'bright', 'Sensitivity', sensitivity, 'Method', 'twostage');
-        oc = centers;
-        or = radii;
-
-        %% Remove overlapping circles   
-        for i = 1 : length(centers) - 1
-            s = i + 1;
-            for j = s : length(centers)
-                tolerance = (radii(i) + radii(j)) / 2;
-                cdist = sqrt((centers(i,1) - centers(j,1)) .^2 + (centers(i,2) - centers(j,2)) .^2);
-                rdist = radii(i) + radii(j) - tolerance;
-
-                if cdist < rdist && radii(j) > 0
-                    if radii(i) > radii(j)
-                        centers(j, 1) = 0;
-                        centers(j, 2) = 0;
-                        radii(j) = 0;
-                    else
-                        centers(i, 1) = 0;
-                        centers(i, 2) = 0;
-                        radii(i) = 0;
-                        break;
-                    end
-                end
-            end
-        end    
-
-        cx = centers(:, 1);
-        cy = centers(:, 2);
-
-        cx(cx == 0) = [];
-        cy(cy == 0) = [];
-        centers = [cx, cy];
-        radii(radii == 0) = [];
+        %% Find the circles around the rochers
+        [centers, radii] = find_rochers(imgmask);
 
         imshow(im);
-        h = viscircles(centers, radii);
+        h = viscircles(centers, radii, 'Color', 'r'); hold on;
         
         
         %% Find stickers
+        
+        [sN, sc, sr] = find_stickers(imgmask);
+        h = viscircles(sc, sr, 'Color', 'b');
+              
+        return
+        
+        %E = edge(graymask, 'canny', [.2,.55]);
+        
         %E = imclose(E, strel("disk", 4));
         %E = bwmorph(E, 'skel', 4);
         %imshow(E);
