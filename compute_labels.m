@@ -7,14 +7,14 @@ function [img_labels] = compute_labels(im)
     lbp_weigth = 1;
     avg_weight = 1.1;
     
-    disp("Computing local dexs...");
+    %disp("Computing local dexs...");
     lbpdex = compute_local_descriptors(gray, t_size, t_size, @compute_lbp);
     avgdex = compute_local_descriptors(im, t_size, t_size, @compute_average_color);
     
     dex.descriptors = [lbpdex.descriptors .* lbp_weigth, avgdex.descriptors .* avg_weight];
     dex.nt_rows = [lbpdex.nt_rows, avgdex.nt_rows];
     dex.nt_cols = [lbpdex.nt_cols, avgdex.nt_cols];
-    disp("Done");
+    %disp("Done");
     
     % Creates the labels using kmeans
     labels = kmeans(dex.descriptors, n_clusters);
