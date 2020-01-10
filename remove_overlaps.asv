@@ -27,7 +27,7 @@ function [centers, radii] = remove_overlaps(centers, radii, overlapfactor, box)
                     
                 else
                     hasSi = hasSticker(centers(i, :), radii(i), box.stickers);
-                    hasSj = hasSticker(centers(j, :), radii(j), box.stickers);
+                    hasSj = hasSticker(centers(i, :), radii(j), box.stickers);
                     
                     if hasSi && ~hasSj
                         centers(j, 1) = 0;
@@ -37,27 +37,16 @@ function [centers, radii] = remove_overlaps(centers, radii, overlapfactor, box)
                         centers(i, 1) = 0;
                         centers(i, 2) = 0;
                         radii(i) = 0;
-                        break;
-                    % If both circles hava a sticker, check if its the same
-                    elseif hasSi && hasSj 
-                        if centers(i, :) == centers(j, :)
-                            if radii(i) > radii(j)
-                                centers(j, 1) = 0;
-                                centers(j, 2) = 0;
-                                radii(j) = 0;
-                            else
-                                centers(i, 1) = 0;
-                                centers(i, 2) = 0;
-                                radii(i) = 0;
-                                break;
-                            end
+                    elseif hasSi && hasSj && 
+                    else
+                        if radii(i) > radii(j)
+                            centers(j, 1) = 0;
+                            centers(j, 2) = 0;
+                            radii(j) = 0;
                         else
                             centers(i, 1) = 0;
                             centers(i, 2) = 0;
                             radii(i) = 0;
-                            centers(j, 1) = 0;
-                            centers(j, 2) = 0;
-                            radii(j) = 0;
                             break;
                         end
                     end

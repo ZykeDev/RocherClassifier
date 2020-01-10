@@ -7,13 +7,16 @@ function [n, centers, radii] = find_stickers(im, box)
     n = 0;          % Stickers counter
     
     avgSticker = [213*0.5/255, 196*0.5/255, 165*0.6/255]; % TODO better
-    overlapfactor = 0.5;
+    overlapfactor = 0;
+        
+    %% Find all small circles
+    maxRadius = ceil(box.majax / box.expectedNumber * 1.1);
+    minRadius = floor(maxRadius * 0.3);
+     
+    sensitivity = 0.97;
+    [stickersC, stickersR] = imfindcircles(im, [minRadius, maxRadius], 'ObjectPolarity', 'bright', 'Sensitivity', sensitivity, 'Method', 'twostage');
     
-    
-    %% Find all small circles (TODO fix range)
-    [stickersC, stickersR] = imfindcircles(im, [18, 22], 'ObjectPolarity', 'bright', 'Sensitivity', 0.95, 'Method', 'twostage');
-    
-    %% Compute the average color of each circle
+    %% Compute the color variance of each circle
     possibleIndexs = [];
     
     for i = 1 : length(stickersR)       
@@ -42,10 +45,10 @@ function [n, centers, radii] = find_stickers(im, box)
         mB = mean(B(mask));
         
         if mR > 0 && mG > 0 && mB > 0
-            if isWithinRange([mR, mG, mB], avgSticker, 0.3)
+            if true
                 variance = [var(R(mask)), var(G(mask)), var(B(mask))];
                 variance = mean(variance);
-                if variance < 0.05
+                if variance < 0.03
                     possibleIndexs = [possibleIndexs, i];
                 end
             end
@@ -53,8 +56,8 @@ function [n, centers, radii] = find_stickers(im, box)
     end
    
     if isempty(possibleIndexs)
-        centers = stickersC;
-        radii = stickersR;
+        centers = [];
+        radii = [];
         return
     end
     
@@ -68,7 +71,7 @@ function [n, centers, radii] = find_stickers(im, box)
         filteredR = [filteredR; stickersR(i)];
     end
     
-    [filteredC, filteredR] = remove_overlaps(filteredC, filteredR, overlapfactor);
+    [filteredC, filteredR] = remove_overlaps(filteredC, filteredR, overlapfactor, []);
     
     centers = filteredC;
     radii = filteredR;

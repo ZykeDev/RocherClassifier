@@ -16,14 +16,14 @@ function [] = compute_image_dexs()
     nimages = numel(images);
     
     %% Compute the descriptors for every image
-    for n = 64 : nimages
+    for n = 63 : nimages
         im = imread(['Dataset/' images{n}]);
         im = im2double(im);
         [r, c, ch] = size(im);
         
         %% Set default box data
         box.type = "SQUARE";
-        box.numberOfRochers = 24;
+        box.expectedNumber = 24;
 
         %% Preprocessing TODO
         gray = rgb2gray(im);
@@ -89,15 +89,33 @@ function [] = compute_image_dexs()
         %line(xMinax, yMinax, 'Linewidth', 4);
         %hold off;
 
-
-        %% Find the circles around the rochers
-        [rocherC, rocherR] = find_rochers(imgmask, box);
-        imshow(imgmask);
-        h = viscircles(rocherC, rocherR, 'Color', 'r'); hold on;
-        
         %% Find stickers
-        [stickerN, stickerC, stickerR] = find_stickers(imgmask);
-        h = viscircles(stickerC, stickerR, 'Color', 'b');
+        [stickerN, stickerC, stickerR] = find_stickers(imgmask, box);
+        imshow(imgmask);
+        if isempty(stickerC)
+            disp("No stickers found");
+            box.stickers.number = stickerN;
+        else
+            h = viscircles(stickerC, stickerR, 'Color', 'b');
+            box.stickers.number = stickerN;
+            box.stickers.centers = stickerC;
+            box.stickers.radii = stickerR;
+        end
+        
+        
+        %% Find the rochers
+        [rocherN, rocherC, rocherR] = find_rochers(imgmask, box); 
+        if isempty(rocherC) 
+            disp("No rochers found");
+        else
+            h = viscircles(rocherC, rocherR, 'Color', 'r'); hold on;
+            box.rochers.number = rocherN;
+            box.rochers.centers = rocherC;
+            box.rochers.radii = rocherR;
+        end
+        
+        
+       
         
         %% Remove circles without a sticker inside
         
