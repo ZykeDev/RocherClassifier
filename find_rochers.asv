@@ -1,0 +1,31 @@
+function [centers, radii] = find_rochers(im, box)
+%FIND_ROCHERS Summary of this function goes here
+    
+    %% Find the circles around the rochers
+    if box.type == "SQUARE"    
+        disp(box.majax);
+        targetRadius = box.majax / (box.numberOfRochers / 2);
+        minRadius = floor(targetRadius * 0.75);     % Hardcoded used to be 60  
+        maxRadius = ceil(targetRadius * 1);     % Hardcoded used to be 87
+    
+    elseif box.type == "RECT"
+        targetRadius = box.majax / 8; %sqrt(box.numberOfRochers);
+        minRadius = floor(targetRadius * 0.9);     % Hardcoded used to be 60  
+        maxRadius = ceil(targetRadius * 1.1);     % Hardcoded used to be 87
+    end
+    
+    sensitivity = 0.97;
+
+    [centers, radii] = imfindcircles(im, [minRadius, maxRadius], 'ObjectPolarity', 'bright', 'Sensitivity', sensitivity, 'Method', 'twostage');
+    oc = centers;   % Original centers
+    or = radii;     % Original radii
+    
+    if isempty(centers)
+        disp("empty");
+        return
+    end
+    %% Remove overlapping circles
+    rocheOverlapFactor = 0.2;
+    [centers, radii] = remove_overlaps(centers, radii, rocheOverlapFactor);    
+end
+

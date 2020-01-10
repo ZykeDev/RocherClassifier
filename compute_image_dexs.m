@@ -15,12 +15,15 @@ function [] = compute_image_dexs()
     fclose(f);
     nimages = numel(images);
     
-    for n = 2 : nimages
-        %% Get the image data
+    %% Compute the descriptors for every image
+    for n = 64 : nimages
         im = imread(['Dataset/' images{n}]);
         im = im2double(im);
         [r, c, ch] = size(im);
+        
+        %% Set default box data
         box.type = "SQUARE";
+        box.numberOfRochers = 24;
 
         %% Preprocessing TODO
         gray = rgb2gray(im);
@@ -64,13 +67,15 @@ function [] = compute_image_dexs()
         minax = region.MinorAxisLength;
         orientation = region.Orientation;   % TODO remove if not needed
 
-        if majax < minax * 1.2 % TODO square/rect ratio?
+        if majax < minax * 1.2              % 1.2 ratio is 93.75% accurate
             box.type = "SQUARE";
         else
             box.type = "RECT";
         end
-        disp(n);
-        disp(box.type);
+        
+        box.majax = majax;
+        box.minax = minax;
+        disp(box.type); % TODO remove
 
         % Draw the main axes
         %xMajax = centroid(1) + [-1, 1] * majax * cosd(-orientation)/2;
@@ -86,58 +91,53 @@ function [] = compute_image_dexs()
 
 
         %% Find the circles around the rochers
-        [centers, radii] = find_rochers(imgmask);
-
-        imshow(im);
-        h = viscircles(centers, radii, 'Color', 'r'); hold on;
-        
+        [rocherC, rocherR] = find_rochers(imgmask, box);
+        imshow(imgmask);
+        h = viscircles(rocherC, rocherR, 'Color', 'r'); hold on;
         
         %% Find stickers
-        
-        [sN, sc, sr] = find_stickers(imgmask);
-        h = viscircles(sc, sr, 'Color', 'b');
-              
-        return
-        
-        %E = edge(graymask, 'canny', [.2,.55]);
-        
-        %E = imclose(E, strel("disk", 4));
-        %E = bwmorph(E, 'skel', 4);
-        %imshow(E);
-        % Compute the dexs for the number of Stickers
-
-        %L = bwlabel(E);
-        % Prune small CCs
-        %for k = 1 : 2781
-        %    n = numel(L(L == k));
-        %    if n < 80
-        %        L(L == k) = 0;
-        %    end
-        %end
-        %imshow(L);
-
-        %[sn, spos] = compute_stickers(E);
-        
+        [stickerN, stickerC, stickerR] = find_stickers(imgmask);
+        h = viscircles(stickerC, stickerR, 'Color', 'b');
         
         %% Remove circles without a sticker inside
         
         
- 
+        
+        return
         
     end
     
-        %% For every image, compute a set of descriptors
-        %disp("Computing Descriptors...");
-        %lbp = [];
-        %for n = 1 : nimages
-            %lbp = [lbp; compute_lbp(im)];
-            %box.type
-            %number of (valid) rochers (not missing/unlabled)
-        %end
+    %E = edge(graymask, 'canny', [.2,.55]);
 
-        % Save images, labels and descriptors
-        %save("data.mat", "images", "labels", "lbp");
-        %disp("Descriptors Saved");
+    %E = imclose(E, strel("disk", 4));
+    %E = bwmorph(E, 'skel', 4);
+    %imshow(E);
+    % Compute the dexs for the number of Stickers
+
+    %L = bwlabel(E);
+    % Prune small CCs
+    %for k = 1 : 2781
+    %    n = numel(L(L == k));
+    %    if n < 80
+    %        L(L == k) = 0;
+    %    end
+    %end
+    %imshow(L);
+
+    %[sn, spos] = compute_stickers(E);
+
+    %% For every image, compute a set of descriptors
+    %disp("Computing Descriptors...");
+    %lbp = [];
+    %for n = 1 : nimages
+        %lbp = [lbp; compute_lbp(im)];
+        %box.type
+        %number of (valid) rochers (not missing/unlabled)
+    %end
+
+    % Save images, labels and descriptors
+    %save("data.mat", "images", "labels", "lbp");
+    %disp("Descriptors Saved");
 
         
         

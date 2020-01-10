@@ -6,7 +6,8 @@ function [n, centers, radii] = find_stickers(im, box)
     [r, c, ~] = size(im);
     n = 0;          % Stickers counter
     
-    avgSticker = [213*0.5/255, 196*0.5/255, 165*0.6/255]; % TODO better
+    maxNumberOfStickers = 24;
+    avgSticker = [213*0.5/255, 196*0.5/255, 165*0.6/255];
     overlapfactor = 0.5;
     
     
@@ -42,7 +43,7 @@ function [n, centers, radii] = find_stickers(im, box)
         mB = mean(B(mask));
         
         if mR > 0 && mG > 0 && mB > 0
-            if isWithinRange([mR, mG, mB], avgSticker, 0.3)
+            if isWithinRange([mR, mG, mB], avgSticker, 0.37)
                 variance = [var(R(mask)), var(G(mask)), var(B(mask))];
                 variance = mean(variance);
                 if variance < 0.05
@@ -73,6 +74,44 @@ function [n, centers, radii] = find_stickers(im, box)
     centers = filteredC;
     radii = filteredR;
     
+  
+
+    
+    
+    return  
+    
+    bw = im; 
+     
+    maxMajorAxis = 40;
+    minMajorAxis = 10;
+    maxRatio = 1.85;
+    minRatio = 0; %1.1;
+  
+    % Apply regionprops to detect ellipses
+    s = regionprops(bw, {'Centroid', 'MajorAxisLength', 'MinorAxisLength', 'Orientation'});
+
+    t = linspace(0, 2*pi, 50);
+    
+    hold on
+    for k = 1:length(s)
+        a = s(k).MajorAxisLength/2;
+        b = s(k).MinorAxisLength/2;
+               
+        if a <= maxMajorAxis && a >= minMajorAxis 
+            if a < b*maxRatio && a > b*minRatio
+                Xc = s(k).Centroid(1);
+                Yc = s(k).Centroid(2);
+                phi = deg2rad(-s(k).Orientation);
+                x = Xc + a*cos(t)*cos(phi) - b*sin(t)*sin(phi);
+                y = Yc + a*cos(t)*sin(phi) + b*sin(t)*cos(phi);
+                plot(x, y, 'r', 'Linewidth', 3)
+                n = n + 1;
+            end
+        end
+    end
+    hold off
+    disp(n);
+
 end
 
 % Returns true if a set of values is close to a set of targets (within range)
