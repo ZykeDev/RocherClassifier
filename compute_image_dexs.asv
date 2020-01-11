@@ -99,8 +99,16 @@ function [] = compute_image_dexs()
         %% Find stickers
         [stickerN, stickerC, stickerR] = find_stickers(imgmask, box);
         
-        imshow(imgmask); hold on;
-
+        
+        grid = proj_grid(box); % !
+        
+        
+        imshow(bw); hold on;
+        plot(box.center(1), box.center(2), 'b*'); 
+        line(xMajax, yMajax, 'Linewidth', 2);
+        line(xMinax, yMinax, 'Linewidth', 2);
+      
+            
         if isempty(stickerC)
             disp("No stickers found");
             box.stickers.number = stickerN;
@@ -112,11 +120,6 @@ function [] = compute_image_dexs()
         end
         
         
-        grid = build_grid(box);
-        proj = proj_grid(box, grid);
-        
-        
-        return
         %% Find the rochers
         [rocherN, rocherC, rocherR] = find_rochers(imgmask, box); 
         if isempty(rocherC) 
