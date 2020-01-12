@@ -24,7 +24,7 @@ function [] = compute_image_dexs()
     
     
     %% Compute the descriptors for every image
-    for n = 10 : nimages
+    for n = 3 : nimages
         im = imread(['Dataset/' images{n}]);
         im = im2double(im);
         [r, c, ch] = size(im);
@@ -34,7 +34,7 @@ function [] = compute_image_dexs()
         [maskedBox, box] = isolate_box(im);
         imshow(maskedBox); hold on;
         scatter(box.center(1), box.center(2));
-        return
+        
         %% Project grid on top of the box
         % grid = build_grid(box);
         % proj = proj_grid(box, grid);
@@ -43,7 +43,7 @@ function [] = compute_image_dexs()
 
         %% Find stickers
         [stickerN, stickerC, stickerR] = find_stickers(maskedBox, box);
-          
+        return
         if isempty(stickerC)
             box.stickers.number = stickerN;
             box.stickers.centers = [];

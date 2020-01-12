@@ -1,19 +1,23 @@
-function [centers, radii] = remove_overlaps(centers, radii, overlapfactor, box)
+function [centers, radii] = remove_overlaps2(probs, maxoverlap)
 %REMOVE_OVERLAPS If 2 or more circles overlap, remove all but one of them
 
     % Do nothing if there is no significant number of radii
-    if length(radii) <= 1
+    if length(probs) <= 1
         return
     end
     
+    centers = [probs(:, 1), probs(:, 2)];
+    radii = probs(:, 3);
+    vars = probs(:, 4);
+    
     for i = 1 : length(radii) - 1
         for j = i + 1 : length(radii)
-            tolerance = (radii(i) + radii(j)) * overlapfactor;
+            tolerance = (radii(i) + radii(j)) * maxoverlap;
             cdist = sqrt((centers(i,1) - centers(j,1)) .^2 + (centers(i,2) - centers(j,2)) .^2);
             rdist = radii(i) + radii(j) - tolerance;
 
             if cdist < rdist && radii(j) > 0 
-                if isempty(box)
+                if vars(i) == vars(j)
                     if radii(i) > radii(j)
                         centers(j, 1) = 0;
                         centers(j, 2) = 0;
@@ -24,43 +28,18 @@ function [centers, radii] = remove_overlaps(centers, radii, overlapfactor, box)
                         radii(i) = 0;
                         break;
                     end
-                    
                 else
-                    hasSi = hasSticker(centers(i, :), radii(i), box.stickers);
-                    hasSj = hasSticker(centers(j, :), radii(j), box.stickers);
-                    
-                    if hasSi && ~hasSj
+                    if vars(i) < vars(j)
                         centers(j, 1) = 0;
                         centers(j, 2) = 0;
                         radii(j) = 0;
-                    elseif ~hasSi && hasSj
+                    else
                         centers(i, 1) = 0;
                         centers(i, 2) = 0;
                         radii(i) = 0;
                         break;
-                    % If both circles hava a sticker, check if its the same
-                    elseif hasSi && hasSj 
-                        if centers(i, :) == centers(j, :)
-                            if radii(i) > radii(j)
-                                centers(j, 1) = 0;
-                                centers(j, 2) = 0;
-                                radii(j) = 0;
-                            else
-                                centers(i, 1) = 0;
-                                centers(i, 2) = 0;
-                                radii(i) = 0;
-                                break;
-                            end
-                        else
-                            centers(i, 1) = 0;
-                            centers(i, 2) = 0;
-                            radii(i) = 0;
-                            centers(j, 1) = 0;
-                            centers(j, 2) = 0;
-                            radii(j) = 0;
-                            break;
-                        end
                     end
+                        
                 end
             end
         end

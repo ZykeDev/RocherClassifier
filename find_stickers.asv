@@ -11,7 +11,7 @@ function [n, centers, radii] = find_stickers(im, box)
     
     if box.type == "RECT"
         % For every row of the box
-        for g = 0 : 4 : 16
+        for g = 12 : 4 : 16
             grid = box.grid(g+1 : g+4, :);
             disp(box.grid)
             xi = grid(:, 1);
@@ -21,10 +21,8 @@ function [n, centers, radii] = find_stickers(im, box)
             yi(yi > c) = c;
 
             rowmask = poly2mask(xi, yi, r, c);
-            maskedRow = maskRGB(im, rowmask);
-            
-            % TODO try to find the best 4 circles with small variance
-            % (candidate stickers)
+            maskedRow = maskRGB(im, rowmask);    
+
         end
     end
     

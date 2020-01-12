@@ -46,43 +46,55 @@ function [maskedBox, box] = isolate_box(im)
 
     if box.majax < box.minax * 1.2          % 1.2 ratio has 93.75% accuracy
         box.type = "SQUARE";
+        box.grid = zeros([12, 2]);          % Boolean grid (has/nt rocher)
     else
         box.type = "RECT";
+        box.grid = zeros([6,4]);
     end
     
     box.center = region.Centroid;
     box.orientation = region.Orientation;
     box.majax = box.majax * 0.95; % TODO fix reduction
-    box.minax = box.minax;
+    box.minax = box.minax * 0.95;
 
     boxSides = region.Extrema(4, :) - region.Extrema(6, :);
     box.angle = rad2deg(atan(-boxSides(2) / boxSides(1))) ; % The - sign compensates for the inverted y-values
     
     if box.type == "SQUARE"
-        avgax = (box.minax + box.majax) / 2;
-        d1x = box.center(1) + [-1, 1] * avgax * sqrt(2) * cosd(-box.angle + 45)/2; % TODO check angle vs orientation
-        d1y = box.center(2) + [-1, 1] * avgax * sqrt(2) * sind(-box.angle + 45)/2;
-        d2x = box.center(1) + [-1, 1] * avgax * sqrt(2) * cosd(-box.angle - 45)/2;
-        d2y = box.center(2) + [-1, 1] * avgax * sqrt(2) * sind(-box.angle - 45)/2;
-
-        xi = [d1x(1), d2x(1), d1x(2), d2x(2)];
-        yi = [d1y(1), d2y(1), d1y(2), d2y(2)];
-        
+        a = box.majax / 2;
+        b = a;
     elseif box.type == "RECT"       
         a = box.majax/2;
         b = box.minax/2;
-        
-        A = [box.center(1)-a, box.center(2)-b];
-        B = [box.center(1)+a, box.center(2)-b];
-        C = [box.center(1)+a, box.center(2)+b];
-        D = [box.center(1)-a, box.center(2)+b];
-
-        points = rotatePoints([A; B; C; D], box.center, box.orientation);
-        
-        xi = points(:, 1);
-        yi = points(:, 2);
     end
     
+    A = [box.center(1)-a, box.center(2)-b];
+    B = [box.center(1)+a, box.center(2)-b];
+    C = [box.center(1)+a, box.center(2)+b];
+    D = [box.center(1)-a, box.center(2)+b];
+    
+    % Calculate the midway points for the RECT grid (6x4)
+    A1 = [box.center(1)-a, box.center(2)-b/2];
+    B1 = [box.center(1)+a, box.center(2)-b/2];
+    Amid = [box.center(1)-a, box.center(2)];
+    Bmid = [box.center(1)+a, box.center(2)];
+    C1 = [box.center(1)-a, box.center(2)+b/2];
+    D1 = [box.center(1)+a, box.center(2)+b/2];
+    
+    % Rotate the box corners
+    points = rotatePoints([A; B; C; D], box.center, box.orientation);
+    
+    % Rotate the grdid corners
+    grid1 = rotatePoints([A; B; B1; A1], box.center, box.orientation);
+    grid2 = rotatePoints([A1; B1; Bmid; Amid], box.center, box.orientation);
+    grid3 = rotatePoints([Amid; Bmid; D1; C1], box.center, box.orientation);
+    grid4 = rotatePoints([C1; D1; C; D], box.center, box.orientation);
+    
+    box.grid = [grid1; grid2; grid3; grid4];
+
+    xi = points(:, 1);
+    yi = points(:, 2);           
+        
     % Mask the image with a box polygon
     boxmask = poly2mask(xi, yi, r, c);
     maskedBox = maskRGB(im, boxmask);    
