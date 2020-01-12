@@ -16,98 +16,25 @@ function [] = compute_image_dexs()
     nimages = numel(images);
     
     % Descriptors lists
-    lbp = [];       % LBP
-    nos = [];       % Number Of Stickers
+    lbp = [];       % LBP (unused)
     bxt = [];       % Box Type
+    nos = [];       % Number Of Stickers
+    rsh = [];       % List of rocher types
+    
+    
     
     %% Compute the descriptors for every image
-    for n = 1 : nimages
+    for n = 10 : nimages
         im = imread(['Dataset/' images{n}]);
         im = im2double(im);
         [r, c, ch] = size(im);
         disp(["Computing", n]);
-
         
-        %% Set default box data
-        box.originalSize = [r, c];
-        box.type = "SQUARE";
-        box.expectedNumber = 24;
-
-        %% Preprocessing
-        gray = rgb2gray(im);
-        im = imgaussfilt(im, 0.5);
-
-        %% Correct Nonuniform Illumination
-        se = strel('disk', 80); % TODO eval se size
-        bg = imopen(gray, se);
-        new = im - bg .* 2;
-
-        img_labels = compute_labels(new);
-        masked = clean_labels(img_labels);
-        masked = padarray(masked, [8, 6]); % TODO fix numbers
-        masked = masked(2:end, :);
-
-        % Mask the original using the BW image
-        imgmask = bsxfun(@times, new, cast(masked, 'like', new));   
-        graymask = rgb2gray(imgmask);
-        
-        %% Detect box type (square or rect)
-        bwo = imbinarize(graymask, 0.000001);
-        bw = imerode(bwo, strel('disk', 15));
-        bw = imdilate(bw, strel('disk', 25)); % TODO eval constants
-        bw = imerode(bw, strel('disk', 29));
-        bw = imdilate(bw, strel('disk', 47));
-        %bw = imclose(bw, strel('disk', 21));
-
-        % Compute regions data, only use the one with the largest area
-        stats = regionprops(bw, "Area", "Centroid", "MajorAxisLength", "MinorAxisLength", "Orientation", "Extrema", "FilledImage", "BoundingBox");
-        region = largestAreaRegion(stats);
-        
-        
-        majax = region.MajorAxisLength;
-        minax = region.MinorAxisLength;
-        
-        % Save ONLY the cleaned area of the box. Might be useful later. 
-        box.region = region.FilledImage;
-        
-        if majax < minax * 1.2              % 1.2 ratio has 93.75% accuracy
-            box.type = "SQUARE";
-        else
-            box.type = "RECT";
-        end
-        
-        
-        
-        box.center = region.Centroid;
-        box.orientation = region.Orientation;
-        box.majax = majax;
-        box.minax = minax;
-               
-        boxSides = region.Extrema(4, :) - region.Extrema(6, :);
-        box.angle = rad2deg(atan(-boxSides(2) / boxSides(1))) ; % The - sign compensates for the inverted y-values
-        
-        % Draw the main axes (unused)
-        xMajax = box.center(1) + [-1, 1] * minax * cosd(-box.angle)/2;
-        yMajax = box.center(2) + [-1, 1] * minax * sind(-box.angle)/2;
-        xMinax = box.center(1) + [-1, 1] * minax * sind(box.angle)/2;
-        yMinax = box.center(2) + [-1, 1] * minax * cosd(box.angle)/2;
-       
-        % TODO mod for RECT boxes
-        avgax = (minax+majax)/2;
-        d1x = box.center(1) + [-1, 1] * avgax * sqrt(2) * cosd(-box.angle+45)/2;
-        d1y = box.center(2) + [-1, 1] * avgax * sqrt(2) * sind(-box.angle+45)/2;
-        d2x = box.center(1) + [-1, 1] * avgax * sqrt(2) * cosd(-box.angle-45)/2;
-        d2y = box.center(2) + [-1, 1] * avgax * sqrt(2) * sind(-box.angle-45)/2;
-       
-        xi = [d1x(1), d2x(1), d1x(2), d2x(2)];
-        yi = [d1y(1), d2y(1), d1y(2), d2y(2)];
-        
-        % Mask the image with a box polygon
-        boxmask = poly2mask(xi, yi, r, c);
-        
-        maskedBox = maskRGB(im, boxmask);             
-        
-        
+        %% Isolate the box
+        [maskedBox, box] = isolate_box(im);
+        imshow(maskedBox); hold on;
+        scatter(box.center(1), box.center(2));
+        return
         %% Project grid on top of the box
         % grid = build_grid(box);
         % proj = proj_grid(box, grid);
@@ -187,32 +114,4 @@ function [] = compute_image_dexs()
 
 end
 
-%% Masks every RGB channel with a mask and returns the concatenated img     
-function masked = maskRGB(img, mask)
-    R = img(:, :, 1);
-    G = img(:, :, 2);
-    B = img(:, :, 3);
 
-    R(~mask) = 0;
-    G(~mask) = 0;
-    B(~mask) = 0;
-    
-    masked = cat(3, R, G, B);
-
-end
-
-
-%% Returns the region with the largets area
-function region = largestAreaRegion(stats)
-    maxarea = 0;
-    maxindex = 1;
-    for i = 1 : size(stats)
-        thisarea = stats(i).Area;
-        if thisarea > maxarea
-            maxarea = thisarea;
-            maxindex = i;
-        end
-    end
-
-    region = stats(maxindex);
-end
