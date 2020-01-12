@@ -3,7 +3,7 @@ function grid = build_grid(box)
 
     scale = box.majax;
     
-    edgeA = 0.15 * scale; 
+    edgeA = 0.16 * scale; 
     baseA = edgeA;
     distA = 0.233 * scale;
     edgeB = 0.28 * scale;
@@ -37,8 +37,8 @@ function grid = build_grid(box)
         
         
         %% Second half
-        baseA = edgeA*2 + distA + distA/2;
-        baseB = edgeB*2 + distB;
+        baseA = (edgeA*2 + distA + distA/2);
+        baseB = (edgeB*2 + distB);
         
         for i = 0 : 1
             point = [baseA + (distA*i), edgeA];

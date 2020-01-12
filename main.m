@@ -13,7 +13,7 @@ load("data.mat");
 cvp = cvpartition(labels, 'Holdout', 0.2);
 
 % Test this classifier
-out = test_classifier([lbp], labels, cvp);
+out = test_classifier([lbp, nos, bxt], labels, cvp);
 
 % Display the results
 disp(out.test_perf.accuracy);

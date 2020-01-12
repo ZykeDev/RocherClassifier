@@ -81,7 +81,7 @@ function res = hasSticker(center, radius, stickers)
     res = false;
     foundNumber = 0;
     
-    if stickers.number == 0
+    if isempty(stickers.number == )
         return
     end
        

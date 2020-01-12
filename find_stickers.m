@@ -6,16 +6,16 @@ function [n, centers, radii] = find_stickers(im, box)
     [r, c, ~] = size(im);
     n = 0;          % Stickers counter
     
-    avgSticker = [213*0.5/255, 196*0.5/255, 165*0.6/255]; % TODO better
+    avgSticker = [213*0.5/255, 196*0.5/255, 165*0.6/255]; % TODO improve
     overlapfactor = 0;
         
     %% Find all small circles
     maxRadius = ceil(box.majax / box.expectedNumber * 1.1);
     minRadius = floor(maxRadius * 0.3);
-     
+    
     sensitivity = 0.97;
     [stickersC, stickersR] = imfindcircles(im, [minRadius, maxRadius], 'ObjectPolarity', 'bright', 'Sensitivity', sensitivity, 'Method', 'twostage');
-    
+  
     %% Compute the color variance of each circle
     possibleIndexs = [];
     
@@ -23,9 +23,9 @@ function [n, centers, radii] = find_stickers(im, box)
         cx = round(stickersC(i, 1));
         cy = round(stickersC(i, 2));
         rad = floor(stickersR(i));
-        
+              
         % Ignore edge cases for now
-        if cx < rad || cy < rad || cx + rad > r || cy + rad > c
+        if cx <= rad || cy <= rad || cx + rad > r || cy + rad > c
             continue;
         end
         
@@ -45,16 +45,16 @@ function [n, centers, radii] = find_stickers(im, box)
         mB = mean(B(mask));
         
         if mR > 0 && mG > 0 && mB > 0
-            if true
-                variance = [var(R(mask)), var(G(mask)), var(B(mask))];
-                variance = mean(variance);
-                if variance < 0.03
-                    possibleIndexs = [possibleIndexs, i];
-                end
+            variance = [var(R(mask)), var(G(mask)), var(B(mask))];
+            variance = mean(variance);
+
+            if variance < 0.03
+                possibleIndexs = [possibleIndexs, i];
             end
+           
         end
     end
-   
+    
     if isempty(possibleIndexs)
         centers = [];
         radii = [];
