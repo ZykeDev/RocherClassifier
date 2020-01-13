@@ -7,59 +7,79 @@ function srp = compute_srp(img, sc, box)
     
     if box.type == "RECT"
         % For every row of the box
-        for g = 0 : 4 : 15
-            grid = box.grid(g+1 : g+4, :);
-            xi = grid(:, 1);
-            yi = grid(:, 2);
+        [ns, coords] = size(sc);
+        distances = [];
+        targets = [];
+        for i = 1 : ns
+            sofar = size(distances);
+            if sofar(1) > 5 || isempty(sc)
+                continue
+            end
             
-            % Fix points out of the image
-            xi(xi > r) = r;
-            yi(yi > c) = c;
-            
-            rowmask = poly2mask(xi, yi, r, c);
-            maskedRow = maskRGB(img, rowmask);
-                      
-            % Only work with the middle 2 rows (?) TODO for now
-            if g ~= 4 && g ~= 8
+            [targetc, distance] = find_closest(sc(i, :), sc, box.orientation);
+            if targetc(1) == -1
                 continue;
             end
-            
-            [ns, coords] = size(sc);
-            for i = 1 : ns
-                [targetc, distance] = find_closest(sc(i, :), sc);
-                
-                disp(distance);
-            end
-           
-            
+
+            targets = [targets; targetc];
+            distances = [distances; distance];
+            %plot([sc(i, 1), targetc(1)], [sc(i, 2), targetc(2)], "LineWidth", 2);
         end
+
+        thissrp = zeros([1, 5]);
+        for d = 1 : size(distances)
+            if distances(d) < box.majax/6 && distances(d) > 0
+                thissrp(d) = 1;
+            end
+        end
+        
+        srp = [srp; thissrp(1:5)];
+           
     elseif box.type == "SQUARE"
-        % TODO
-        return
+        srp = [srp; ones([4, 5])];
     end
     
-
-
 
 end
 
 
 %% Finds the center closest to the one in input
-function [targetc, minDist] = find_closest(thisc, sc)
-    minDist = 100000; % TODO fix
-    %targetc = [0, 0];
+function [targetc, minDist] = find_closest(thisc, sc, theta)
+    minDist = 100000; % Arbitrarily large number, prob better to set it to image diagonal + 1
+    targetc = [-1, -1];
+    
     [ns, coords] = size(sc);
     for i = 1 : ns
         candidatec = [sc(i, 1), sc(i, 2)];
-        if candidatec(1) == thisc(1) && candidatec(2) == thisc(2)
-            continue;
+            if candidatec(1) == thisc(1) && candidatec(2) == thisc(2)
+                continue;
+            end
+            
+        if theta == 0
+            thisDist = dist(thisc, candidatec);
+            if thisDist < minDist
+                minDist = thisDist;
+                targetc = sc(i, :);
+            end
+            
+        elseif theta > 0 && thisc(2) > candidatec(2)
+            thisDist = dist(thisc, candidatec);
+            if thisDist < minDist
+                minDist = thisDist;
+                targetc = sc(i, :);
+            end
+            
+        elseif theta < 0 && thisc(2) < candidatec(2)
+            thisDist = dist(thisc, candidatec);
+            if thisDist < minDist
+                minDist = thisDist;
+                targetc = sc(i, :);
+            end
         end
-
-        thisDist = dist(thisc, candidatec);
-        if thisDist < minDist
-            minDist = thisDist;
-            targetc = sc(i);
-        end
+    end
+    
+    if minDist == 100000
+        minDist = -1;
     end
 end
 

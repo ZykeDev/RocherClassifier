@@ -29,12 +29,13 @@ function [] = compute_image_dexs()
     
     
     %% Compute the descriptors for every image
-    for n = 3 : nimages
+    for n = 1 : nimages
         im = imread(['Dataset/' images{n}]);
         im = im2double(im);
         [r, c, ch] = size(im);
-        disp(["Computing", n]);
+        disp(["Computing", n])
         thisNos = 0;
+        thisSrp = [];
 
         %% Isolate the box (bxt)
         [maskedBox, box] = isolate_box(im);
@@ -60,45 +61,41 @@ function [] = compute_image_dexs()
         
         
         %% Compute the sticker relative positions using rows
-        imshow(maskedBox); hold on;
+        %imshow(maskedBox); hold on;
+        
+        boxsrp = [];
         for r = 1 : length(rows)
             thisrow = rows(r);
             sn = thisrow.sn;
             sc = thisrow.sc;
-            sr = thisrow.sr;
              
-            for p = 1 : sn
-                scatter(sc(p, 1), sc(p, 2));
-            end
+            %for p = 1 : sn
+                %scatter(sc(p, 1), sc(p, 2));
+            %end
             
-            thissrp = compute_srp(maskedBox, sc, box);
-            disp(thissrp);            
-            
+            rowsrp = compute_srp(maskedBox, sc, box);
+            boxsrp = [boxsrp; rowsrp];
         end
         
+        thisSrp = [thisSrp; boxsrp];
         
+        %% Compute the grid (grd)
         
-        %% Check the grid (grd)
-        
-        % Using the rows 
-        
-       
-
- 
+        thisGrd = ones([4, 6]);
         
         %% Store the computed descriptors
         hold off;
         lbp = [lbp; compute_lbp(im)];
-        nos = [nos; thisNos];
-        rsh = [rsh; thisRsh];
-        
+        grd = [grd; reshape(thisGrd.', 1, [])]; 
+        nos = [nos; thisNos]; 
+        rsh = [rsh; reshape(thisRsh.', 1, [])];
+        srp = [srp; reshape(thisSrp.', 1, [])];
+                
         if box.type == "SQUARE"
             bxt = [bxt; 0];
         else
             bxt = [bxt; 1];
         end
-        return        
-        
     end
     
     %E = edge(graymask, 'canny', [.2,.55]);

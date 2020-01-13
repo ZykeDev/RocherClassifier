@@ -1,7 +1,7 @@
-function rows = find_stickers(im, box)
+function rows = find_stickers(img, box)
 %FIND_STICKERS  Find areas that correspond to the white stickers
     
-    [r, c, ~] = size(im);    
+    [r, c, ~] = size(img);    
     rows = [];
     
     if box.type == "RECT"
@@ -16,13 +16,8 @@ function rows = find_stickers(im, box)
             yi(yi > c) = c;
             
             rowmask = poly2mask(xi, yi, r, c);
-            maskedRow = maskRGB(im, rowmask);
+            maskedRow = maskRGB(img, rowmask);
                       
-            % Only work with the middle 2 rows (?) TODO for now
-            if g ~= 4 && g ~= 8
-                continue;
-            end
-            
             % Find all circles in the region
             [sc, sr] = find_circles(maskedRow, box);
             [sc, sr] = remove_overlaps(sc, sr);
@@ -37,8 +32,19 @@ function rows = find_stickers(im, box)
             rows = [rows; row];
         end
     elseif box.type == "SQUARE"
-        % TODO
-        return
+        % TODO actually implement this
+        [sc, sr] = find_circles(img, box);
+        [sc, sr] = remove_overlaps(sc, sr);
+        
+        if isempty(sr)
+            rows = [rows; [0, 0, 0, 0, 0, 0]];
+        else
+            row.sn = length(sr); 
+            row.sc = sc;
+            row.sr = sr;
+
+            rows = [rows; row];
+        end
     end
 
 end
@@ -90,14 +96,19 @@ function [sc, sr] = find_circles(img, box)
         end
     end
     
-    % Rebuild the arrays
-    cx = sc(:, 1);
-    cy = sc(:, 2);
+    if isempty(sr)
+        sc = [];
+        sr = [];
+    else
+        % Rebuild the arrays
+        cx = sc(:, 1);
+        cy = sc(:, 2);
 
-    cx(cx == 0) = [];
-    cy(cy == 0) = [];
-    sc = [cx, cy];
-    sr(sr == 0) = [];
+        cx(cx == 0) = [];
+        cy(cy == 0) = [];
+        sc = [cx, cy];
+        sr(sr == 0) = [];
+    end
 end
 
 
