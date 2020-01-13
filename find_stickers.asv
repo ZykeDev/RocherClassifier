@@ -1,113 +1,105 @@
-function [n, centers, radii] = find_stickers(im, box)
-%COMPUTE_STICKERS
-    % Find areas that correspond to the white stickers
-    % Count them and save their positions
+function rows = find_stickers(im, box)
+%FIND_STICKERS  Find areas that correspond to the white stickers
     
-    [r, c, ~] = size(im);
-    n = 0;          % Stickers counter
-    
-    avgSticker = [175/255, 148/255, 103/255];
-    overlapfactor = 0;
+    [r, c, ~] = size(im);    
+    rows = [];
     
     if box.type == "RECT"
         % For every row of the box
-        for g = 12 : 4 : 16
+        for g = 0 : 4 : 15
             grid = box.grid(g+1 : g+4, :);
-            disp(box.grid)
             xi = grid(:, 1);
             yi = grid(:, 2);
-        
+            
+            % Fix points out of the image
             xi(xi > r) = r;
             yi(yi > c) = c;
-
+            
             rowmask = poly2mask(xi, yi, r, c);
-            maskedRow = maskRGB(im, rowmask);    
-
+            maskedRow = maskRGB(im, rowmask);
+                      
+            % Only work with the middle 2 rows (?) TODO for now
+            if g ~= 4 || g ~= 8
+                continue
+            end
+            
+            % Find all circles in the region
+            [sc, sr] = find_circles(maskedRow, box);
+            imshow(maskedRow);
+            viscircles(sc, sr, "Color", "r");
+            
+            % Save the stickers of the row
+            row.sn = length(sr); 
+            row.sc = sc;
+            row.sr = sr;
+            rows = [rows; row];
         end
+    elseif box.type == "SQUARE"
+        % TODO
+        return
     end
-    
-    
-        
-    %% Find all small circles
-    if box.type == "SQUARE"
-        maxRadius = ceil(box.majax / (box.expectedNumber * 1.1));
-        minRadius = floor(maxRadius * 0.3);
+
+end
+
+%% Finds all circles in an image
+function [sc, sr] = find_circles(img, box)
+	[r, c, ~] = size(img);
+
+    % Calculate an appropiate radius range
+    if box.type == "SQUARE"     % TODO fix square's radii
+        maxRad = ceil(box.majax / (box.expectedNumber * 1.1));
+        minRad = floor(maxRad * 0.3);
         
     elseif box.type == "RECT"
-        maxRadius = floor((box.majax / box.expectedNumber + 1) / 2);
-        minRadius = floor(maxRadius * 0.75);
+        maxRad = floor((box.majax / box.expectedNumber + 1) / 2);
+        minRad = floor(maxRad * 0.75);
     end
-   
+    
     sensitivity = 0.97;
-    [stickersC, stickersR] = imfindcircles(im, [minRadius, maxRadius], 'ObjectPolarity', 'bright', 'Sensitivity', sensitivity, 'Method', 'twostage');
+    edgethresh = 0.4;
+    [sc, sr] = imfindcircles(img, [minRad, maxRad], 'ObjectPolarity', 'bright', 'Sensitivity', sensitivity, 'EdgeThreshold', edgethresh, 'Method', 'twostage');
     
-    %% Compute the color variance of each circle
-    possibleIndexs = [];
-    
-    for i = 1 : length(stickersR)       
-        cx = round(stickersC(i, 1));
-        cy = round(stickersC(i, 2));
-        rad = floor(stickersR(i));
+    for i = 1 : length(sr)
+        cx = sc(i, 1);
+        cy = sc(i, 2);
+        rad = sr(i);
               
-        % Ignore edge cases for now
+        % Ignore edge cases
         if cx <= rad || cy <= rad || cx + rad > r || cy + rad > c
             continue;
         end
         
         % Mask the boundig box with the circle
-        bbox = im(cx-rad : cx+rad, cy-rad : cy+rad, 1:end);
+        bbox = img(round(cy-rad) : round(cy+rad), round(cx-rad) : round(cx+rad), :);
         [bboxR, bboxC, ~] = size(bbox);
         
         [W, H] = meshgrid(1:bboxR, 1:bboxC);
         mask = sqrt((W-rad).^2 + (H-rad).^2) <= rad;
         
-        R = bbox(:, :, 1);
-        G = bbox(:, :, 2);
-        B = bbox(:, :, 3);
-       
-        mR = mean(R(mask));
-        mG = mean(G(mask));
-        mB = mean(B(mask));
+        RGB = maskRGB(bbox, mask);
+        M = mean(mean(mean(RGB, 3)));
         
-        % Lighter than gray
-        if mR > 0 && mG > 0 && mB > 0
-            variance = [var(R(mask)), var(G(mask)), var(B(mask))];
-            variance = mean(variance);
- 
-            if isWithinRange([mR, mG, mB], avgSticker, 0.1)
-                possibleIndexs = [possibleIndexs, i];
-            end
-           
+        % Remove circles with an average color lower than the Threshold
+        if M < 0.4 
+            sc(i, 1) = 0;
+            sc(i, 2) = 0;
+            sr(i) = 0;
         end
     end
     
-    if isempty(possibleIndexs)
-        centers = [];
-        radii = [];
-        return
-    end
-    
-    %% Filter circles
-    filteredC = [];
-    filteredR = [];
-    for i = 1 : length(possibleIndexs)
-        idx = possibleIndexs(i);
-        fx = stickersC(i, 1);
-        fy = stickersC(i, 2);
-        filteredC = [filteredC; [fx, fy]];
-        filteredR = [filteredR; stickersR(i)];
-    end
-    
-    [filteredC, filteredR] = remove_overlaps(filteredC, filteredR, overlapfactor, []);
-    
-    centers = filteredC;
-    radii = filteredR;
-    viscircles(centers, radii);
-    
+    % Rebuild the arrays
+    cx = sc(:, 1);
+    cy = sc(:, 2);
+
+    cx(cx == 0) = [];
+    cy(cy == 0) = [];
+    sc = [cx, cy];
+    sr(sr == 0) = [];
 end
 
 
 %% Returns true if a set of values is close to a set of targets (within range)
+% TODO remove
 function res = isWithinRange(values, targets, range)
     res = true;
     for i = 1 : length(values)

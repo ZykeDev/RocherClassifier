@@ -16,22 +16,25 @@ function [] = compute_image_dexs()
     nimages = numel(images);
     
     % Descriptors lists
-    lbp = [];       % LBP
+    lbp = [];       % LBP (unused)
     bxt = [];       % Box Type
     nos = [];       % Number Of Stickers
-    rsh = [
+    rsh = [];       % List of rocher types
+    srp = [];       % Stickers Relative Positions
+    
     
     
     %% Compute the descriptors for every image
-    for n = 1 : nimages
+    for n = 3 : nimages
         im = imread(['Dataset/' images{n}]);
         im = im2double(im);
         [r, c, ch] = size(im);
         disp(["Computing", n]);
-
         
-                 
-        
+        %% Isolate the box
+        [maskedBox, box] = isolate_box(im);
+        imshow(maskedBox); hold on;
+        scatter(box.center(1), box.center(2));
         
         %% Project grid on top of the box
         % grid = build_grid(box);
@@ -41,7 +44,7 @@ function [] = compute_image_dexs()
 
         %% Find stickers
         [stickerN, stickerC, stickerR] = find_stickers(maskedBox, box);
-          
+        return
         if isempty(stickerC)
             box.stickers.number = stickerN;
             box.stickers.centers = [];
@@ -109,20 +112,6 @@ function [] = compute_image_dexs()
     %% Save images, labels and descriptors
     save("data.mat", "images", "labels", "lbp", "nos", "boxtype");
     disp("Descriptors Saved");
-
-end
-
-%% Masks every RGB channel with a mask and returns the concatenated img     
-function masked = maskRGB(img, mask)
-    R = img(:, :, 1);
-    G = img(:, :, 2);
-    B = img(:, :, 3);
-
-    R(~mask) = 0;
-    G(~mask) = 0;
-    B(~mask) = 0;
-    
-    masked = cat(3, R, G, B);
 
 end
 

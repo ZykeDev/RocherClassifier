@@ -18,22 +18,26 @@ function [] = compute_image_dexs()
     % Descriptors lists
     lbp = [];       % LBP (unused)
     bxt = [];       % Box Type
+    grd = [];       % Boolean Grid of the rochers
     nos = [];       % Number Of Stickers
     rsh = [];       % List of rocher types
+    srp = [];       % Stickers Relative Positions
     
     
     
     %% Compute the descriptors for every image
-    for n = 3 : nimages
+    for n = 39 : nimages
         im = imread(['Dataset/' images{n}]);
         im = im2double(im);
         [r, c, ch] = size(im);
         disp(["Computing", n]);
+        thisNos = 0;
+        thisRsh = [];
         
         %% Isolate the box
         [maskedBox, box] = isolate_box(im);
-        imshow(maskedBox); hold on;
-        scatter(box.center(1), box.center(2));
+        %imshow(maskedBox); hold on;
+        %scatter(box.center(1), box.center(2));
         
         %% Project grid on top of the box
         % grid = build_grid(box);
@@ -42,42 +46,36 @@ function [] = compute_image_dexs()
         % maybe not even needed if we are no longer using circles.
 
         %% Find stickers
-        [stickerN, stickerC, stickerR] = find_stickers(maskedBox, box);
-        return
-        if isempty(stickerC)
-            box.stickers.number = stickerN;
-            box.stickers.centers = [];
-            box.stickers.radii = [];
-        else
-            %h = viscircles(stickerC, stickerR, 'Color', 'b');
-            box.stickers.number = stickerN;
-            box.stickers.centers = stickerC;
-            box.stickers.radii = stickerR;
+        rows = find_stickers(maskedBox, box);
+        
+        % Update the nos dex
+        for r = 1 : length(rows)
+            thisrow = rows(r);
+            thisNos = thisNos + thisrow.sn;
         end
         
-        
-    
+        thisRsh = find_rocher_types(maskedBox, box);
+      
         %% Find the rochers
-        [rocherN, rocherC, rocherR] = find_rochers(maskedBox, box); 
-        if isempty(rocherC) 
-            disp("No rochers found");
-        else
-            %h = viscircles(rocherC, rocherR, 'Color', 'r'); hold on;
-            box.rochers.number = rocherN;
-            box.rochers.centers = rocherC;
-            box.rochers.radii = rocherR;
-        end
+        %[rocherN, rocherC, rocherR] = find_rochers(maskedBox, box); 
+        %if isempty(rocherC) 
+        %    disp("No rochers found");
+        %else
+         %   %h = viscircles(rocherC, rocherR, 'Color', 'r'); hold on;
+         %   box.rochers.number = rocherN;
+        %    box.rochers.centers = rocherC;
+        %    box.rochers.radii = rocherR;
+        %end
         
         
 
-        
-        %% Remove circles without a sticker inside
         
         
         %% Store the computed descriptors
         hold off;
         lbp = [lbp; compute_lbp(im)];
-        nos = [nos; box.stickers.number];
+        nos = [nos; thisNos];
+        rsh = [rsh; thisRsh];
         
         if box.type == "SQUARE"
             bxt = [bxt; 0];

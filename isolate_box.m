@@ -93,7 +93,7 @@ function [maskedBox, box] = isolate_box(im)
     box.grid = [grid1; grid2; grid3; grid4];
 
     xi = points(:, 1);
-    yi = points(:, 2);           
+    yi = points(:, 2);
         
     % Mask the image with a box polygon
     boxmask = poly2mask(xi, yi, r, c);
