@@ -25,8 +25,10 @@ function rows = find_stickers(im, box)
             
             % Find all circles in the region
             [sc, sr] = find_circles(maskedRow, box);
-            imshow(maskedRow);
-            viscircles(sc, sr, "Color", "r");
+            [sc, sr] = remove_overlaps(sc, sr);
+            
+            %imshow(maskedRow);
+            %viscircles(sc, sr, "Color", "r");
             
             % Save the stickers of the row
             row.sn = length(sr); 
@@ -99,32 +101,40 @@ function [sc, sr] = find_circles(img, box)
 end
 
 
-%% Returns true if a set of values is close to a set of targets (within range)
-% TODO remove
-function res = isWithinRange(values, targets, range)
-    res = true;
-    for i = 1 : length(values)
-        res = res && values(i) > targets(i)-range && values(i) < targets(i)+range;
+%% Removes overlapping circles
+function [sc, sr] = remove_overlaps(sc, sr)
+    if length(sr) <= 1
+        return
     end
-end
-
-
-
-%% Masks every RGB channel with a mask and returns the concatenated img     
-function masked = maskRGB(img, mask)
-    R = img(:, :, 1);
-    G = img(:, :, 2);
-    B = img(:, :, 3);
-
-    R(~mask) = 0;
-    G(~mask) = 0;
-    B(~mask) = 0;
     
-    masked = cat(3, R, G, B);
+    for i = 1 : length(sr) - 1
+        for j = i + 1 : length(sr)
+            cdist = sqrt((sc(i,1) - sc(j,1)) .^2 + (sc(i,2) - sc(j,2)) .^2);
+            rdist = sr(i) + sr(j) + 1;
 
+            if cdist < rdist && sr(j) > 0
+                if sr(i) >= sr(j)
+                	sc(i, 1) = 0;
+                    sc(i, 2) = 0;
+                    sr(i) = 0;
+                    break;
+                else
+                    sc(j, 1) = 0;
+                    sc(j, 2) = 0;
+                    sr(j) = 0; 
+                end
+            end
+        end
+    end
+    
+    cx = sc(:, 1);
+    cy = sc(:, 2);
+
+    cx(cx == 0) = [];
+    cy(cy == 0) = [];
+    sc = [cx, cy];
+    sr(sr == 0) = [];        
 end
-
-
 
 
 

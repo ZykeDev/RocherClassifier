@@ -23,18 +23,20 @@ function [] = compute_image_dexs()
     rsh = [];       % List of rocher types
     srp = [];       % Stickers Relative Positions
     
+    gridRect   = zeros([4, 6]);
+    gridSquare = []; % TODO
+    
     
     
     %% Compute the descriptors for every image
-    for n = 39 : nimages
+    for n = 3 : nimages
         im = imread(['Dataset/' images{n}]);
         im = im2double(im);
         [r, c, ch] = size(im);
         disp(["Computing", n]);
         thisNos = 0;
-        thisRsh = [];
-        
-        %% Isolate the box
+
+        %% Isolate the box (bxt)
         [maskedBox, box] = isolate_box(im);
         %imshow(maskedBox); hold on;
         %scatter(box.center(1), box.center(2));
@@ -45,31 +47,44 @@ function [] = compute_image_dexs()
         % maybe use squareLength as diameter for maxRadius of circles?
         % maybe not even needed if we are no longer using circles.
 
-        %% Find stickers
+        %% Find stickers (rsh)
         rows = find_stickers(maskedBox, box);
         
-        % Update the nos dex
+        %% Count the stickers (nos)
         for r = 1 : length(rows)
             thisrow = rows(r);
             thisNos = thisNos + thisrow.sn;
         end
         
         thisRsh = find_rocher_types(maskedBox, box);
-      
-        %% Find the rochers
-        %[rocherN, rocherC, rocherR] = find_rochers(maskedBox, box); 
-        %if isempty(rocherC) 
-        %    disp("No rochers found");
-        %else
-         %   %h = viscircles(rocherC, rocherR, 'Color', 'r'); hold on;
-         %   box.rochers.number = rocherN;
-        %    box.rochers.centers = rocherC;
-        %    box.rochers.radii = rocherR;
-        %end
         
         
+        %% Compute the sticker relative positions using rows
+        imshow(maskedBox); hold on;
+        for r = 1 : length(rows)
+            thisrow = rows(r);
+            sn = thisrow.sn;
+            sc = thisrow.sc;
+            sr = thisrow.sr;
+             
+            for p = 1 : sn
+                scatter(sc(p, 1), sc(p, 2));
+            end
+            
+            thissrp = compute_srp(maskedBox, sc, box);
+            disp(thissrp);            
+            
+        end
+        
+        
+        
+        %% Check the grid (grd)
+        
+        % Using the rows 
+        
+       
 
-        
+ 
         
         %% Store the computed descriptors
         hold off;
@@ -82,7 +97,7 @@ function [] = compute_image_dexs()
         else
             bxt = [bxt; 1];
         end
-                
+        return        
         
     end
     
@@ -107,7 +122,7 @@ function [] = compute_image_dexs()
 
     
     %% Save images, labels and descriptors
-    save("data.mat", "images", "labels", "lbp", "nos", "boxtype");
+    save("data.mat", "images", "labels", "lbp", "nos", "bxt", "grd", "rsh", "srp");
     disp("Descriptors Saved");
 
 end

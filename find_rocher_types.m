@@ -1,7 +1,7 @@
 function rsh = find_rocher_types(img, box)
 %FIND_ROCHER_TYPES
 
-    [r, c, ~] = size(im);
+    [r, c, ~] = size(img);
     rsh = [];
     
     if box.type == "RECT"
@@ -11,36 +11,33 @@ function rsh = find_rocher_types(img, box)
             xi = grid(:, 1);
             yi = grid(:, 2);
             
-            % Fix points out of the image
-            xi(xi > r) = r;
-            yi(yi > c) = c;
+            % Segment every slot by divinging by 6 the row
+            % TODO finish
+            Ax = (xi(1)+xi(2))/6;
+            Ay = (yi(1)+yi(2))/2;
+            
+            midAx = (xi(1)+xi(2))/2;
+            midAy = (yi(1)+yi(2))/2;
+            
+            midBx = (xi(3)+xi(4))/2;
+            midBy = (yi(3)+yi(4))/2;
             
             rowmask = poly2mask(xi, yi, r, c);
-            maskedRow = maskRGB(im, rowmask);
+            maskedRow = maskRGB(img, rowmask);
             
-            % Compute the average color of each segment
+            % Compute the average color of each segment (computes the row for now)
+            M = mean(mean(mean(maskedRow, 3)));
+            if M >= 0.04                     % White
+                rsh = [rsh; [1, 1, 1, 1, 1, 1]];
+            elseif M < 0.04 && M >= 0.025    % Classic
+                rsh = [rsh; [0, 0, 0, 0, 0, 0]];
+            else                             % Black
+                rsh = [rsh; [2, 2, 2, 2, 2, 2]];
+            end
             
-            
-            
-            M = mean(mean(mean(RGB, 3)));
-            
-            % Find all circles in the region
-            [sc, sr] = find_circles(maskedRow, box);
-            imshow(maskedRow);
-            viscircles(sc, sr, "Color", "r");
-            
-            % Save the stickers of the row
-            row.sn = length(sr); 
-            row.sc = sc;
-            row.sr = sr;
-            rows = [rows; row];
         end
     end
     
-    
-    
-
-
-
+   
 end
 

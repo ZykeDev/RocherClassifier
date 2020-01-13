@@ -1,23 +1,23 @@
-function [maskedBox, box] = isolate_box(im)
+function [maskedBox, box] = isolate_box(img)
 %ISOLATE_BOX Isolates the box and returns the masked image
 
 
     %% Set default box data
-    maskedBox = im;
+    maskedBox = img;
     
-    [r, c, ch] = size(im);
+    [r, c, ~] = size(img);
     box.originalSize = [r, c];
     box.type = "SQUARE";
     box.expectedNumber = 24;
 
     %% Preprocess the image
-    gray = rgb2gray(im);
-    im = imgaussfilt(im, 0.5);
+    gray = rgb2gray(img);
+    img = imgaussfilt(img, 0.5);
 
     %% Correct Nonuniform Illumination
     se = strel('disk', 80); % TODO eval SE size
     bg = imopen(gray, se);
-    new = im - bg .* 2;
+    new = img - bg .* 2;
     
     % Use cc labeling to detect the box
     img_labels = compute_labels(new);
@@ -54,8 +54,8 @@ function [maskedBox, box] = isolate_box(im)
     
     box.center = region.Centroid;
     box.orientation = region.Orientation;
-    box.majax = box.majax * 0.95; % TODO fix reduction
-    box.minax = box.minax * 0.95;
+    box.majax = box.majax; % TODO fix reduction
+    box.minax = box.minax;
 
     boxSides = region.Extrema(4, :) - region.Extrema(6, :);
     box.angle = rad2deg(atan(-boxSides(2) / boxSides(1))) ; % The - sign compensates for the inverted y-values
@@ -89,7 +89,7 @@ function [maskedBox, box] = isolate_box(im)
     grid2 = rotatePoints([A1; B1; Bmid; Amid], box.center, box.orientation);
     grid3 = rotatePoints([Amid; Bmid; D1; C1], box.center, box.orientation);
     grid4 = rotatePoints([C1; D1; C; D], box.center, box.orientation);
-    
+
     box.grid = [grid1; grid2; grid3; grid4];
 
     xi = points(:, 1);
@@ -97,9 +97,10 @@ function [maskedBox, box] = isolate_box(im)
         
     % Mask the image with a box polygon
     boxmask = poly2mask(xi, yi, r, c);
-    maskedBox = maskRGB(im, boxmask);    
+    maskedBox = maskRGB(img, boxmask);   
 
 end
+
 
 %% Returns the region with the largets area
 function region = largestAreaRegion(stats)
@@ -130,6 +131,7 @@ function masked = maskRGB(img, mask)
     masked = cat(3, R, G, B);
 
 end
+
 
 %% Applies a rotation matrix with angle theta to a set of points
 function points = rotatePoints(points, center, theta)    
