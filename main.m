@@ -23,13 +23,10 @@ end
 
 % Descriptors are therefore:
 % bxt   box type (0 = SQUARE or 1 = RECT)
-% nos   number of stickers
+% nos   number of stickers found
 % rsh   rochers types (list of CLASSIC = 0, WHITE = 1, BLACK = 2)
 % srp   stickers relative positions
-% grd   Boolean matrix of the grid (1 = has a rocher, 0 = doesnt)
 
-% Error Localization (only for images that have been labeled as "no")
-% TODO
 
 % Load the results
 load("data.mat");
@@ -38,7 +35,8 @@ load("data.mat");
 cvp = cvpartition(labels, 'Holdout', 0.2);
 
 % Test this classifier
-out = test_classifier([bxt, grd, nos, rsh, srp], labels, cvp);
+    % removed "grd" for now
+out = test_classifier([bxt, nos, rsh, srp], labels, cvp);
 
 % Display the results
 disp(out.test_perf.accuracy);

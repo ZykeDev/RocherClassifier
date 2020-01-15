@@ -37,8 +37,6 @@ function rsh = find_rocher_types(img, box)
         end
         
     elseif box.type == "SQUARE"
-        % TODO actually impelemnt this
-        % Voronoi
         for g = 0 : 4 : 15
         	rsh = [rsh; [0, 0, 0, 0, 0, 0]];
         end

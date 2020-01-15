@@ -15,14 +15,15 @@ function [maskedBox, box] = isolate_box(img)
     img = imgaussfilt(img, 0.5);
 
     %% Correct Nonuniform Illumination
-    se = strel('disk', 80); % TODO eval SE size
+    se = strel('disk', 80);
     bg = imopen(gray, se);
     new = img - bg .* 2;
     
     % Use cc labeling to detect the box
     img_labels = compute_labels(new);
     masked = clean_labels(img_labels);
-    masked = padarray(masked, [8, 6]); % TODO fix numbers
+    % Resize the mask
+    masked = padarray(masked, [8, 6]);
     masked = masked(2:end, :);
 
     %% Mask the original using the BW image
@@ -54,7 +55,7 @@ function [maskedBox, box] = isolate_box(img)
     
     box.center = region.Centroid;
     box.orientation = region.Orientation;
-    box.majax = box.majax; % TODO fix reduction
+    box.majax = box.majax;
     box.minax = box.minax;
 
     boxSides = region.Extrema(4, :) - region.Extrema(6, :);

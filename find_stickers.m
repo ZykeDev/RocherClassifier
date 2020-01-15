@@ -36,10 +36,15 @@ function rows = find_stickers(img, box)
         [sc, sr] = remove_overlaps(sc, sr);
         [sc, sr] = remove_outliers(img, sc, sr);
 
-        %plot(sc(:, 1), sc(:, 2), 'ro', 'MarkerSize', 20, "LineWidth", 5, "Color", "blue");
+        plot(sc(:, 1), sc(:, 2), 'ro', 'MarkerSize', 20, "LineWidth", 5, "Color", "blue");
         
         if isempty(sr)
-            rows = [rows; [0, 0, 0, 0, 0, 0]];
+            %rows = [rows; [0, 0, 0, 0, 0, 0]];
+            row.sn = 0; 
+            row.sc = [];
+            row.sr = [];
+
+            rows = [rows; row];
         else
             row.sn = length(sr); 
             row.sc = sc;

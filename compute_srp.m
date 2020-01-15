@@ -32,21 +32,34 @@ function srp = compute_srp(img, sc, box)
         for d = 1 : size(distances)
             if distances(d) > box.majax/6 && distances(d) > 0
                 thissrp(d) = 1;
-                
+
                 % Display where there's an error on the box
                 tc = targets(d, :);
                 oc = origins(d, :);
                 m = midpoint(tc, oc);
                 plot(m(1), m(2), 'ro', 'MarkerSize', 30, "LineWidth", 5);
+            elseif distances(d) > box.majax/3 && ditances(d) > 0
+                thissrp(d) = 1;
+                thissrp(d+1) = 1;
+
+                % Display where there's an error on the box
+                tc = targets(d, :);
+                oc = origins(d, :);
+                m = midpoint(tc, oc);
+                m1 = midpoint(tc,m);
+                m2 = midpoint(m, oc);
+                plot(m1(1), m1(2), 'ro', 'MarkerSize', 30, "LineWidth", 5);
+                plot(m2(1), m2(2), 'ro', 'MarkerSize', 30, "LineWidth", 5);
             end
+
         end
         % Only select the first 5 values
         srp = [srp; thissrp(1:5)];
            
     elseif box.type == "SQUARE"
         % Create a voronoi grid to overlay on top of the box
-        grid = build_grid(box);
-        proj_grid(box, grid);
+        voronoigrid = build_grid(box);
+        %proj_grid(box, voronoigrid);
         
         % TODO
         % For every region, try to find a sticker with its center within it

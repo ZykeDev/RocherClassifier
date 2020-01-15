@@ -24,7 +24,7 @@ function [] = compute_image_dexs()
        
     
     %% Compute the descriptors for every image
-    for n = 59 : 59 %nimages
+    for n = 14 : 14%nimages
         im = imread(['Dataset/' images{n}]);
         im = im2double(im);
         imshow(im); hold on;
@@ -43,17 +43,19 @@ function [] = compute_image_dexs()
             bxt = [bxt; 1];
         end
         
-        %% Project grid on top of the box
-        % grid = build_grid(box);
-        % proj = proj_grid(box, grid);
         
         %% Find stickers (rsh)
         rows = find_stickers(maskedBox, box);
         
         %% Count the stickers (nos)
         for r = 1 : length(rows)
-            thisrow = rows(r);
-            thisNos = thisNos + thisrow.sn;
+            if box.type == "RECT"
+                thisrow = rows(r);
+                thisNos = thisNos + thisrow.sn;
+            elseif box.type == "SQUARE"
+                
+                
+            end
         end
         
         thisRsh = find_rocher_types(maskedBox, box);

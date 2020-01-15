@@ -32,14 +32,11 @@ function proj = proj_grid(box, grid)
     Yrot = -(proj(:, 1)-Xc)*sind(angle) + (proj(:, 2)-Yc)*cosd(angle) + Yc;
     proj(:, 1) = Xrot;
     proj(:, 2) = Yrot;
-        
-    
+
     h = voronoi(proj(:, 1), proj(:, 2));
     for i = 1:length(h)
         h(i).LineWidth = 2;
     end
-
-
 
 end
 
