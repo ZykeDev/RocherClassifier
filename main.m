@@ -3,8 +3,10 @@ close all;
 clear all;
 clc;
 
-% Comput the descriptors for all images (only once)
-compute_image_dexs();
+% Comput the descriptors for all images
+if ~exist('data.mat', 'file')
+    compute_image_dexs();
+end
 
 % What descriptors do i need?
 % depending on the box we have different data, so describe it 
@@ -27,9 +29,7 @@ compute_image_dexs();
 % grd   Boolean matrix of the grid (1 = has a rocher, 0 = doesnt)
 
 % Error Localization (only for images that have been labeled as "no")
-% If in a row, the srd between 2 consecutive stickers is > majax/6, then
-% there's a missing element in between. TODO use majax/6 as step (>1 holes)
-% The result is a matrix where 1 = ok, 0 = miss, then a plotted grid.
+% TODO
 
 % Load the results
 load("data.mat");

@@ -1,8 +1,7 @@
 function proj = proj_grid(box, grid)
 %PROJ_GRID Projects a custom rocher grid on top of the box
-
+   
     squareRatio = 0.33;
-    rectRatio = 1;
     rochersPerSide = 6 + squareRatio;
     
     if box.type == "SQUARE"
@@ -10,9 +9,6 @@ function proj = proj_grid(box, grid)
         side = mean([box.majax, box.minax]);
         squareLength = side / rochersPerSide;
     end
-
-    layout = ones(box.originalSize);
-    final.layout = layout;
 
     %[v, c] = voronoin([box.stickers.centers(:, 1)', box.stickers.centers(:, 2)']);
     %voronoi(box.stickers.centers(:, 1), box.stickers.centers(:, 2));
@@ -37,7 +33,6 @@ function proj = proj_grid(box, grid)
     proj(:, 1) = Xrot;
     proj(:, 2) = Yrot;
         
-    
     
     h = voronoi(proj(:, 1), proj(:, 2));
     for i = 1:length(h)
