@@ -17,14 +17,13 @@ function [] = compute_image_dexs()
     
     % Descriptors lists
     bxt = [];       % Box Type
-    grd = [];       % Boolean Grid of the rochers
     nos = [];       % Number Of Stickers
     rsh = [];       % List of rocher types
     srp = [];       % Stickers Relative Positions
        
     
     %% Compute the descriptors for every image
-    for n = 14 : 14%nimages
+    for n = 1 : nimages
         im = imread(['Dataset/' images{n}]);
         im = im2double(im);
         imshow(im); hold on;
@@ -53,8 +52,8 @@ function [] = compute_image_dexs()
                 thisrow = rows(r);
                 thisNos = thisNos + thisrow.sn;
             elseif box.type == "SQUARE"
-                
-                
+                % TODO
+                thisNos = 24;
             end
         end
         
@@ -78,15 +77,10 @@ function [] = compute_image_dexs()
         end
         
         thisSrp = [thisSrp; boxsrp];
-        
-        %% Compute the grid (grd)
-        thisGrd = ones([4, 6]);
-        
-                
+                       
         
         %% Store the computed descriptors
         hold off;
-        grd = [grd; reshape(thisGrd.', 1, [])]; 
         nos = [nos; thisNos]; 
         rsh = [rsh; reshape(thisRsh.', 1, [])];
         srp = [srp; reshape(thisSrp.', 1, [])];        
@@ -94,7 +88,7 @@ function [] = compute_image_dexs()
     
     
     %% Save images, labels and descriptors
-    save("data.mat", "images", "labels", "nos", "bxt", "grd", "rsh", "srp");
+    save("data.mat", "images", "labels", "nos", "bxt", "rsh", "srp");
     disp("Descriptors Saved");
 
 end

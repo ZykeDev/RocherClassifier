@@ -8,11 +8,7 @@ function proj = proj_grid(box, grid)
         % Length of the side of the box
         side = mean([box.majax, box.minax]);
         squareLength = side / rochersPerSide;
-    end
-
-    %[v, c] = voronoin([box.stickers.centers(:, 1)', box.stickers.centers(:, 2)']);
-    %voronoi(box.stickers.centers(:, 1), box.stickers.centers(:, 2));
-    
+    end 
     
     % Rotate the grid to match the box
     theta = box.angle;

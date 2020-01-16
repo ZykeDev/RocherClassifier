@@ -11,8 +11,8 @@ function out = test_classifier(dex, labels, cvp)
     test_values  = dex(cvp.test(1), :);
     test_labels  = labels(cvp.test(1));
 
-    % Uses KNN with k = 7
-    c = fitcknn(train_values, train_labels, "NumNeighbors", 7);
+    % Uses KNN with k = 2
+    c = fitcknn(train_values, train_labels, "NumNeighbors", 2);
 
     train_predicted = predict(c, train_values);
     out.train_perf = confmat(train_labels, train_predicted);

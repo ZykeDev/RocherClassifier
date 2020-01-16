@@ -24,22 +24,3 @@ function out = smooth_vector(v, n, c)
     out = v;
 
 end
-
-% Deprecated application to correct nonuniform illumination by removing the
-% bg
-%[r, c] = size(gray);
-%y = gray(1, :);
-%for i = 1 : r
-%    y(i) = mean(gray(:, i));
-%end
-
-%k = find(y == max(y(:)));
-%xm = gray(k, :);
-%s = smooth_vector(xm, 9, c);
-%si = 1 ./ s;        % Invert the vector
-%M = si' .* si;
-
-%BG = M(round((c-r+1)/2) : c-round((c-r+1)/2)+1, 1 : end);
-
-%bw = gray - BG;
-%imshow(bw, []);

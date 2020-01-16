@@ -12,13 +12,12 @@ function [maskedBox, box] = isolate_box(img)
 
     %% Preprocess the image
     gray = rgb2gray(img);
-    img = imgaussfilt(img, 0.5);
 
     %% Correct Nonuniform Illumination
     se = strel('disk', 80);
     bg = imopen(gray, se);
     new = img - bg .* 2;
-    
+        
     % Use cc labeling to detect the box
     img_labels = compute_labels(new);
     masked = clean_labels(img_labels);
@@ -29,9 +28,9 @@ function [maskedBox, box] = isolate_box(img)
     %% Mask the original using the BW image
     imgmask = bsxfun(@times, new, cast(masked, 'like', new));   
     graymask = rgb2gray(imgmask);
-    
-    
+      
     %% Detect box type (square or rect)
+    % Very low threshold because the background is already all pure black
     bwo = imbinarize(graymask, 0.000001);
     bw = imerode(bwo, strel('disk', 15));
     bw = imdilate(bw, strel('disk', 25)); % TODO eval constants
